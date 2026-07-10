@@ -128,28 +128,58 @@ document.addEventListener('DOMContentLoaded', function() {
         mapElement.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${offsetX}, ${offsetY})`;
     }
 
-    // ===== ПРОВЕРКА И ОГРАНИЧЕНИЕ ГРАНИЦ =====
+    // ===== ПРОВЕРКА И ОГРАНИЧЕНИЕ ГРАНИЦ (УСИЛЕННАЯ) =====
     function clampBounds() {
         const wrapperWidth = wrapper.clientWidth;
         const wrapperHeight = wrapper.clientHeight;
         
+        // Размер карты с учётом масштаба
         const scaledWidth = MAP_WIDTH * scale;
         const scaledHeight = MAP_HEIGHT * scale;
         
+        // Если карта меньше экрана — центрируем
+        if (scaledWidth <= wrapperWidth && scaledHeight <= wrapperHeight) {
+            offsetX = (wrapperWidth - scaledWidth) / 2;
+            offsetY = (wrapperHeight - scaledHeight) / 2;
+            applyTransform();
+            return;
+        }
+        
+        // Если карта больше экрана — ограничиваем движение
+        let newOffsetX = offsetX;
+        let newOffsetY = offsetY;
+        
+        // Минимальное смещение (карта упирается в правый/нижний край)
         const minX = wrapperWidth - scaledWidth;
         const minY = wrapperHeight - scaledHeight;
+        
+        // Максимальное смещение (карта упирается в левый/верхний край)
         const maxX = 0;
         const maxY = 0;
         
-        if (offsetX > maxX) offsetX = maxX;
-        if (offsetX < minX) offsetX = minX;
-        if (offsetY > maxY) offsetY = maxY;
-        if (offsetY < minY) offsetY = minY;
+        // Ограничиваем по X
+        if (newOffsetX > maxX) {
+            newOffsetX = maxX;
+        } else if (newOffsetX < minX) {
+            newOffsetX = minX;
+        }
         
-        applyTransform();
+        // Ограничиваем по Y
+        if (newOffsetY > maxY) {
+            newOffsetY = maxY;
+        } else if (newOffsetY < minY) {
+            newOffsetY = minY;
+        }
+        
+        // Если координаты изменились — применяем
+        if (newOffsetX !== offsetX || newOffsetY !== offsetY) {
+            offsetX = newOffsetX;
+            offsetY = newOffsetY;
+            applyTransform();
+        }
     }
 
-    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ (МГНОВЕННО) =====
+    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ =====
     function fitMap() {
         const wrapperWidth = wrapper.clientWidth;
         const wrapperHeight = wrapper.clientHeight;
@@ -166,6 +196,35 @@ document.addEventListener('DOMContentLoaded', function() {
         offsetY = (wrapperHeight - MAP_HEIGHT * scale) / 2;
         
         applyTransform();
+    }
+
+    // ===== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ ЗУМА =====
+    function zoomTo(newScale, centerX, centerY) {
+        // Ограничиваем масштаб
+        newScale = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
+        
+        if (newScale === scale) return;
+        
+        // Если центр не указан — используем центр экрана
+        if (centerX === undefined || centerY === undefined) {
+            centerX = wrapper.clientWidth / 2;
+            centerY = wrapper.clientHeight / 2;
+        }
+        
+        // Вычисляем, на какую точку карты смотрит центр
+        const mapX = (centerX - offsetX) / scale;
+        const mapY = (centerY - offsetY) / scale;
+        
+        // Применяем новый масштаб
+        scale = newScale;
+        offsetX = centerX - mapX * scale;
+        offsetY = centerY - mapY * scale;
+        
+        // Принудительно ограничиваем границы
+        clampBounds();
+        
+        // Обновляем попап
+        updatePopupPosition();
     }
 
     // ===== ОБРАБОТЧИКИ МЫШИ =====
@@ -203,56 +262,28 @@ document.addEventListener('DOMContentLoaded', function() {
     wrapper.addEventListener('wheel', function(e) {
         e.preventDefault();
         
-        const delta = e.deltaY > 0 ? -0.08 : 0.08;
-        const newScale = Math.min(Math.max(scale + delta, MIN_SCALE), MAX_SCALE);
-        
-        if (newScale === scale) return;
-        
         const rect = wrapper.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
         
-        const mapX = (mouseX - offsetX) / scale;
-        const mapY = (mouseY - offsetY) / scale;
+        const delta = e.deltaY > 0 ? -0.08 : 0.08;
+        const newScale = scale + delta;
         
-        scale = newScale;
-        offsetX = mouseX - mapX * scale;
-        offsetY = mouseY - mapY * scale;
-        
-        clampBounds();
-        updatePopupPosition();
+        zoomTo(newScale, mouseX, mouseY);
     }, { passive: false });
 
     // ===== ЗУМ КНОПКАМИ + и - =====
     document.addEventListener('keydown', function(e) {
         if (e.key === '+' || e.key === '=') {
             e.preventDefault();
-            const newScale = Math.min(scale + 0.1, MAX_SCALE);
-            if (newScale !== scale) {
-                const centerX = wrapper.clientWidth / 2;
-                const centerY = wrapper.clientHeight / 2;
-                const mapX = (centerX - offsetX) / scale;
-                const mapY = (centerY - offsetY) / scale;
-                scale = newScale;
-                offsetX = centerX - mapX * scale;
-                offsetY = centerY - mapY * scale;
-                clampBounds();
-                updatePopupPosition();
-            }
+            zoomTo(scale + 0.1);
         } else if (e.key === '-' || e.key === '_') {
             e.preventDefault();
-            const newScale = Math.max(scale - 0.1, MIN_SCALE);
-            if (newScale !== scale) {
-                const centerX = wrapper.clientWidth / 2;
-                const centerY = wrapper.clientHeight / 2;
-                const mapX = (centerX - offsetX) / scale;
-                const mapY = (centerY - offsetY) / scale;
-                scale = newScale;
-                offsetX = centerX - mapX * scale;
-                offsetY = centerY - mapY * scale;
-                clampBounds();
-                updatePopupPosition();
-            }
+            zoomTo(scale - 0.1);
+        } else if (e.key === '0') {
+            e.preventDefault();
+            fitMap();
+            updatePopupPosition();
         }
     });
 
@@ -315,9 +346,9 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePopupPosition();
     });
 
-    // ===== МГНОВЕННЫЙ ЗАПУСК (БЕЗ ЗАДЕРЖЕК) =====
-    // Сразу центрируем карту
+    // ===== МГНОВЕННЫЙ ЗАПУСК =====
     fitMap();
 
     console.log('✅ Карта готова к работе!');
+    console.log(`📐 Размер карты: ${MAP_WIDTH}×${MAP_HEIGHT}, масштаб: ${scale.toFixed(2)}`);
 });
