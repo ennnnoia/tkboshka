@@ -1,156 +1,150 @@
-(function() {
-    'use strict';
-
-    // ===== ПОЛУЧАЕМ ЭЛЕМЕНТЫ =====
+document.addEventListener('DOMContentLoaded', function() {
     const mapElement = document.getElementById('map');
     const wrapper = document.getElementById('map-wrapper');
 
-    // ===== ИНИЦИАЛИЗАЦИЯ PANZOOM =====
+    // Проверка загрузки библиотеки
+    if (typeof Panzoom === 'undefined') {
+        console.error('Библиотека Panzoom не загружена!');
+        return;
+    }
+
+    // Инициализация panzoom
     const panzoom = Panzoom(mapElement, {
         maxScale: 2.5,
-        minScale: 0.3,
+        minScale: 0.2,
         step: 0.1,
-        duration: 300,
-        contain: 'outside'
+        duration: 300
     });
 
-    // Подключаем колесико мыши для зума
     wrapper.addEventListener('wheel', panzoom.zoomWithWheel);
 
-    // ===== ДАННЫЕ О ВЛАДЕЛЬЦАХ ДОМИКОВ =====
-    // 28 записей (можно менять имена и поздравления)
+    // ===== ДАННЫЕ О 27 ДОМИКАХ =====
     const housesData = [
-        { owner: 'Ивановы', congrats: 'С новосельем! 🥂' },
-        { owner: 'Петровы', congrats: 'Счастья и уюта! 🏡' },
-        { owner: 'Сидоровы', congrats: 'Пусть всегда будет тепло! 🔥' },
-        { owner: 'Кузнецовы', congrats: 'С днем рождения! 🎂' },
-        { owner: 'Смирновы', congrats: 'Крепкого здоровья! 💪' },
-        { owner: 'Поповы', congrats: 'С Рождеством! ✨' },
-        { owner: 'Соколовы', congrats: 'Счастливой семьи! ❤️' },
-        { owner: 'Лебедевы', congrats: 'Мира и добра! ☮️' },
-        { owner: 'Козловы', congrats: 'С Днем Победы! 🌺' },
-        { owner: 'Новиковы', congrats: 'С Новым годом! 🎄' },
-        { owner: 'Морозовы', congrats: 'Тепла и уюта! ☀️' },
-        { owner: 'Волковы', congrats: 'Смелости и силы! 🐺' },
-        { owner: 'Соловьёвы', congrats: 'Красоты и гармонии! 🎵' },
-        { owner: 'Васильевы', congrats: 'Богатого урожая! 🌾' },
-        { owner: 'Зайцевы', congrats: 'Быстрых успехов! 🚀' },
-        { owner: 'Павловы', congrats: 'С днем свадьбы! 💍' },
-        { owner: 'Семёновы', congrats: 'С юбилеем! 🎉' },
-        { owner: 'Голубевы', congrats: 'Мира и спокойствия! 🕊️' },
-        { owner: 'Виноградовы', congrats: 'Сладкой жизни! 🍇' },
-        { owner: 'Богдановы', congrats: 'С днем ангела! 👼' },
-        { owner: 'Воробьёвы', congrats: 'Весеннего настроения! 🌸' },
-        { owner: 'Фёдоровы', congrats: 'С православным праздником! ✝️' },
-        { owner: 'Михайловы', congrats: 'С днем города! 🏙️' },
-        { owner: 'Беляевы', congrats: 'Светлых идей! 💡' },
-        { owner: 'Тарасовы', congrats: 'С днем рождения! 🎁' },
-        { owner: 'Беловы', congrats: 'Чистого неба! ☁️' },
-        { owner: 'Комаровы', congrats: 'Летнего отдыха! 🏖️' },
-        { owner: 'Орловы', congrats: 'Свободы и высоты! 🦅' }
+        { owner: 'анна чипска', congrats: 'аве киндер! и пусть солнце будет в вас и вне вас' },
+        { owner: 'Петровы', congrats: 'Счастья, здоровья и уюта! 🏡' },
+        { owner: 'Сидоровы', congrats: 'Пусть всегда горит очаг! 🔥' },
+        { owner: 'Кузнецовы', congrats: 'Крепкой семьи и верных друзей! 💪' },
+        { owner: 'Смирновы', congrats: 'Мира и добра вашему дому! ☮️' },
+        { owner: 'Поповы', congrats: 'С Рождеством! Света и радости! ✨' },
+        { owner: 'Соколовы', congrats: 'Свободы и счастья! 🕊️' },
+        { owner: 'Лебедевы', congrats: 'Красоты и гармонии! 🎵' },
+        { owner: 'Козловы', congrats: 'Смелости и удачи во всём! 🐺' },
+        { owner: 'Новиковы', congrats: 'С Новым годом! Чудес и подарков! 🎄' },
+        { owner: 'Морозовы', congrats: 'Тёплой зимы и уютных вечеров! ☀️' },
+        { owner: 'Волковы', congrats: 'Силы и мудрости! 🐺' },
+        { owner: 'Соловьёвы', congrats: 'Весеннего настроения! 🌸' },
+        { owner: 'Васильевы', congrats: 'Богатого урожая и достатка! 🌾' },
+        { owner: 'Зайцевы', congrats: 'Лёгкости и быстрых успехов! 🚀' },
+        { owner: 'Павловы', congrats: 'С днём свадьбы! Любви до гроба! 💍' },
+        { owner: 'Семёновы', congrats: 'С юбилеем! Долгих лет жизни! 🎉' },
+        { owner: 'Голубевы', congrats: 'Мира и спокойствия над головой! 🕊️' },
+        { owner: 'Виноградовы', congrats: 'Сладкой и богатой жизни! 🍇' },
+        { owner: 'Богдановы', congrats: 'С днём ангела! Божьей помощи! 👼' },
+        { owner: 'Воробьёвы', congrats: 'Весны в душе и радости! 🌸' },
+        { owner: 'Фёдоровы', congrats: 'С Пасхой! Света и любви! ✝️' },
+        { owner: 'Михайловы', congrats: 'С днём города! Гордитесь своим домом! 🏙️' },
+        { owner: 'Беляевы', congrats: 'Светлых идей и вдохновения! 💡' },
+        { owner: 'Тарасовы', congrats: 'С днём рождения! Всех благ! 🎁' },
+        { owner: 'Беловы', congrats: 'Чистого неба и яркого солнца! ☁️' },
+        { owner: 'Орловы', congrats: 'Свободы и новых высот! 🦅' }
     ];
 
-    // ===== ВАРИАНТЫ ИЗОБРАЖЕНИЙ ДОМИКОВ =====
+    // ===== ИЗОБРАЖЕНИЯ ДОМИКОВ (ВСЕ РАЗНЫЕ) =====
+    // У нас 27 домиков и 12 разных вариантов изображений
     const houseImages = [
         'images/house-1.png',
         'images/house-2.png',
         'images/house-3.png',
         'images/house-4.png',
-        'images/house-5.png'
+        'images/house-5.png',
+        'images/house-6.png',
+        'images/house-7.png',
+        'images/house-8.png',
+        'images/house-9.png',
+        'images/house-10.png',
+        'images/house-11.png',
+        'images/house-12.png'
     ];
 
     // ===== ГЕНЕРАЦИЯ ДОМИКОВ =====
-    function generateHouses() {
-        const mapWidth = 2000;
-        const mapHeight = 1500;
-        const margin = 60; // Отступ от краев
-      
+    const mapWidth = 3000;
+    const mapHeight = 2000;
+    const houseSize = 300;
+    const margin = 50;
 
-        housesData.forEach((data, index) => {
-            const house = document.createElement('div');
-            house.className = 'house';
-          //const fixedPositions = [
-   // { x: 150, y: 200 },
-    //{ x: 400, y: 350 },
-    // ... 28 позиций
-//];
-// И используйте их вместо Math.random()
-            
-            // Случайные координаты
-            const x = margin + Math.random() * (mapWidth - margin * 2 - 80);
-            const y = margin + Math.random() * (mapHeight - margin * 2 - 80);
-            
-            house.style.left = x + 'px';
-            house.style.top = y + 'px';
-            
-            // Случайное изображение домика
-            const randomImage = houseImages[Math.floor(Math.random() * houseImages.length)];
-            house.style.backgroundImage = `url('${randomImage}')`;
-            
-            // Сохраняем данные
-            house.dataset.owner = data.owner;
-            house.dataset.congrats = data.congrats;
-            house.dataset.index = index;
+    // Перемешиваем изображения, чтобы домики были разные (но некоторые могут повторяться)
+    function getRandomImage() {
+        return houseImages[Math.floor(Math.random() * houseImages.length)];
+    }
 
-            // Клик по домику
-            house.addEventListener('click', function(e) {
-                e.stopPropagation();
-                showPopup(this);
-            });
-
-            mapElement.appendChild(house);
+    housesData.forEach((data, index) => {
+        const house = document.createElement('div');
+        house.className = 'house';
+        
+        // Генерируем координаты с учётом размера домика
+        const x = margin + Math.random() * (mapWidth - margin * 2 - houseSize);
+        const y = margin + Math.random() * (mapHeight - margin * 2 - houseSize);
+        
+        house.style.left = x + 'px';
+        house.style.top = y + 'px';
+        
+        // Назначаем случайное изображение
+        house.style.backgroundImage = `url('${getRandomImage()}')`;
+        
+        // Сохраняем данные
+        house.dataset.owner = data.owner;
+        house.dataset.congrats = data.congrats;
+        house.dataset.index = index;
+        
+        // Клик по домику
+        house.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showPopup(this);
         });
-    }
+        
+        mapElement.appendChild(house);
+    });
 
-    // ===== СОЗДАЕМ ПОПАП =====
-    function createPopup() {
-        const popup = document.createElement('div');
-        popup.className = 'popup';
-        popup.id = 'popup';
-        popup.innerHTML = `
-            <h3>🏡 Поздравляем!</h3>
-            <div class="owner-name" id="popup-owner">Ивановы</div>
-            <div class="congrats-text" id="popup-congrats">С новосельем! 🥂</div>
-            <button class="close-btn" id="popup-close">Закрыть</button>
-        `;
-        mapElement.appendChild(popup);
-        return popup;
-    }
+    // ===== СОЗДАНИЕ ПОПАПА =====
+    const popup = document.createElement('div');
+    popup.className = 'popup';
+    popup.innerHTML = `
+        <h3>🏡 Поздравляем!</h3>
+        <div class="owner-name" id="popup-owner"></div>
+        <div class="congrats-text" id="popup-congrats"></div>
+        <button class="close-btn" id="popup-close">Закрыть</button>
+    `;
+    mapElement.appendChild(popup);
 
-    const popup = createPopup();
     const popupOwner = document.getElementById('popup-owner');
     const popupCongrats = document.getElementById('popup-congrats');
     const closeBtn = document.getElementById('popup-close');
 
     // ===== ФУНКЦИЯ ПОКАЗА ПОПАПА =====
-    function showPopup(houseElement) {
-        const owner = houseElement.dataset.owner;
-        const congrats = houseElement.dataset.congrats;
-        
-        // Получаем координаты домика
-        const houseX = parseFloat(houseElement.style.left);
-        const houseY = parseFloat(houseElement.style.top);
-        
-        // Учитываем масштаб и панорамирование
+    function showPopup(house) {
         const scale = panzoom.getScale();
         const transform = panzoom.getTransform();
         
-        const popupX = (houseX * scale) + transform.x + (80 * scale) / 2; // + половина ширины домика
-        const popupY = (houseY * scale) + transform.y - 10;
+        // Координаты домика на карте (в пикселях карты)
+        const houseX = parseFloat(house.style.left);
+        const houseY = parseFloat(house.style.top);
+        const houseHalf = 300 * scale / 2; // Половина размера домика с учётом зума
         
-        // Позиционируем попап
+        // Позиция попапа: справа от домика
+        const popupX = (houseX * scale + transform.x + 300 * scale + 15); // 15px отступа
+        const popupY = (houseY * scale + transform.y + 300 * scale / 2); // По центру по вертикали
+        
         popup.style.left = popupX + 'px';
         popup.style.top = popupY + 'px';
         
         // Заполняем данными
-        popupOwner.textContent = owner;
-        popupCongrats.textContent = congrats;
-        
+        popupOwner.textContent = house.dataset.owner;
+        popupCongrats.textContent = house.dataset.congrats;
         popup.style.display = 'block';
         
-        // Добавляем класс активного домика
+        // Убираем активный класс у всех домиков
         document.querySelectorAll('.house').forEach(h => h.classList.remove('active'));
-        houseElement.classList.add('active');
+        house.classList.add('active');
     }
 
     // ===== ЗАКРЫТИЕ ПОПАПА =====
@@ -164,33 +158,33 @@
         closePopup();
     });
 
-    // Закрытие по клику на пустое место
+    // Закрытие по клику на карту (не на домик)
     mapElement.addEventListener('click', function(e) {
         if (e.target === mapElement) {
             closePopup();
         }
     });
 
-    // Закрытие по клавише ESC
+    // Закрытие по ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closePopup();
         }
     });
 
-    // ===== АДАПТАЦИЯ ПОД РАЗМЕР ЭКРАНА =====
+    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ =====
     function fitMap() {
         const wrapperWidth = wrapper.clientWidth;
         const wrapperHeight = wrapper.clientHeight;
-        const mapWidth = 2000;
-        const mapHeight = 1500;
+        const mapWidth = 3000;
+        const mapHeight = 2000;
         
-        let scaleX = wrapperWidth / mapWidth;
-        let scaleY = wrapperHeight / mapHeight;
+        const scaleX = wrapperWidth / mapWidth;
+        const scaleY = wrapperHeight / mapHeight;
         let initialScale = Math.min(scaleX, scaleY) * 0.85;
         
         if (initialScale > 1) initialScale = 1;
-        if (initialScale < 0.3) initialScale = 0.3;
+        if (initialScale < 0.2) initialScale = 0.2;
         
         const tx = (wrapperWidth - mapWidth * initialScale) / 2;
         const ty = (wrapperHeight - mapHeight * initialScale) / 2;
@@ -199,14 +193,12 @@
         panzoom.zoomTo(initialScale, { animate: false });
     }
 
-    // ===== ЗАПУСК =====
-    generateHouses();
-    
-    // Ждем загрузки всех изображений
+    // Запуск после загрузки всех изображений
     window.addEventListener('load', function() {
-        setTimeout(fitMap, 200);
+        setTimeout(fitMap, 300);
     });
-    
+
     window.addEventListener('resize', fitMap);
 
-})();
+    console.log('✅ Карта загружена! Домиков:', document.querySelectorAll('.house').length);
+});
