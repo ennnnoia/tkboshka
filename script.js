@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // Инициализация panzoom
+    // ===== ИНИЦИАЛИЗАЦИЯ PANZOOM (НОВАЯ ВЕРСИЯ) =====
     const panzoom = Panzoom(mapElement, {
         maxScale: 2.5,
         minScale: 0.2,
@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         duration: 300
     });
 
+    // Подключаем колесико для зума
     wrapper.addEventListener('wheel', panzoom.zoomWithWheel);
 
     // ===== ДАННЫЕ О 27 ДОМИКАХ =====
@@ -50,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
 
     // ===== 27 УНИКАЛЬНЫХ ИЗОБРАЖЕНИЙ ДОМИКОВ =====
-    // Каждый домик получает свою картинку по номеру
     const houseImages = [
         'images/house-1.png',
         'images/house-2.png',
@@ -91,22 +91,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const house = document.createElement('div');
         house.className = 'house';
         
-        // Генерируем координаты с учётом размера домика
         const x = margin + Math.random() * (mapWidth - margin * 2 - houseSize);
         const y = margin + Math.random() * (mapHeight - margin * 2 - houseSize);
         
         house.style.left = x + 'px';
         house.style.top = y + 'px';
-        
-        // ===== КАЖДОМУ ДОМИКУ СВОЯ КАРТИНКА ПО НОМЕРУ =====
         house.style.backgroundImage = `url('${houseImages[index]}')`;
         
-        // Сохраняем данные
         house.dataset.owner = data.owner;
         house.dataset.congrats = data.congrats;
         house.dataset.index = index;
         
-        // Клик по домику
         house.addEventListener('click', function(e) {
             e.stopPropagation();
             showPopup(this);
@@ -130,28 +125,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const popupCongrats = document.getElementById('popup-congrats');
     const closeBtn = document.getElementById('popup-close');
 
-    // ===== ФУНКЦИЯ ПОКАЗА ПОПАПА =====
+    // ===== ФУНКЦИЯ ПОКАЗА ПОПАПА (ИСПРАВЛЕНА) =====
     function showPopup(house) {
-        const scale = panzoom.getScale();
+        // Получаем трансформацию через getTransform()
         const transform = panzoom.getTransform();
+        const scale = transform.scale;  // В новой версии scale внутри объекта
+        const x = transform.x;
+        const y = transform.y;
         
-        // Координаты домика на карте (в пикселях карты)
         const houseX = parseFloat(house.style.left);
         const houseY = parseFloat(house.style.top);
         
         // Позиция попапа: справа от домика
-        const popupX = (houseX * scale + transform.x + 300 * scale + 15);
-        const popupY = (houseY * scale + transform.y + 300 * scale / 2);
+        const popupX = (houseX * scale + x + 300 * scale + 15);
+        const popupY = (houseY * scale + y + 300 * scale / 2);
         
         popup.style.left = popupX + 'px';
         popup.style.top = popupY + 'px';
         
-        // Заполняем данными
         popupOwner.textContent = house.dataset.owner;
         popupCongrats.textContent = house.dataset.congrats;
         popup.style.display = 'block';
         
-        // Убираем активный класс у всех домиков
         document.querySelectorAll('.house').forEach(h => h.classList.remove('active'));
         house.classList.add('active');
     }
@@ -167,21 +162,19 @@ document.addEventListener('DOMContentLoaded', function() {
         closePopup();
     });
 
-    // Закрытие по клику на карту (не на домик)
     mapElement.addEventListener('click', function(e) {
         if (e.target === mapElement) {
             closePopup();
         }
     });
 
-    // Закрытие по ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closePopup();
         }
     });
 
-    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ =====
+    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ (ИСПРАВЛЕНО) =====
     function fitMap() {
         const wrapperWidth = wrapper.clientWidth;
         const wrapperHeight = wrapper.clientHeight;
@@ -198,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tx = (wrapperWidth - mapWidth * initialScale) / 2;
         const ty = (wrapperHeight - mapHeight * initialScale) / 2;
         
+        // В новой версии используем panzoom.moveTo() с объектом
         panzoom.moveTo(tx, ty);
         panzoom.zoomTo(initialScale, { animate: false });
     }
