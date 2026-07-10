@@ -238,6 +238,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('✅ Карта готова к работе!');
 });
-
-    console.log('✅ Карта загружена! Домиков:', document.querySelectorAll('.house').length);
-});
