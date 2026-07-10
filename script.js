@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const MAP_WIDTH = 3000;
     const MAP_HEIGHT = 2000;
     const HOUSE_SIZE = 300;
-    const MIN_SCALE = 0.15;
-    const MAX_SCALE = 2.5;
+    const MIN_SCALE = 0.2;
+    const MAX_SCALE = 3.0;
 
     // ===== СОСТОЯНИЕ =====
     let scale = 1;
@@ -128,74 +128,73 @@ document.addEventListener('DOMContentLoaded', function() {
         mapElement.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${offsetX}, ${offsetY})`;
     }
 
-    // ===== ПРОВЕРКА И ОГРАНИЧЕНИЕ ГРАНИЦ (УСИЛЕННАЯ) =====
+    // ===== ЖЁСТКОЕ ОГРАНИЧЕНИЕ ГРАНИЦ =====
     function clampBounds() {
         const wrapperWidth = wrapper.clientWidth;
         const wrapperHeight = wrapper.clientHeight;
         
-        // Размер карты с учётом масштаба
         const scaledWidth = MAP_WIDTH * scale;
         const scaledHeight = MAP_HEIGHT * scale;
         
-        // Если карта меньше экрана — центрируем
-        if (scaledWidth <= wrapperWidth && scaledHeight <= wrapperHeight) {
-            offsetX = (wrapperWidth - scaledWidth) / 2;
-            offsetY = (wrapperHeight - scaledHeight) / 2;
-            applyTransform();
-            return;
-        }
-        
-        // Если карта больше экрана — ограничиваем движение
-        let newOffsetX = offsetX;
-        let newOffsetY = offsetY;
-        
-        // Минимальное смещение (карта упирается в правый/нижний край)
+        // Карта должна полностью покрывать экран (или быть больше)
+        // Минимальное смещение — когда правый/нижний край карты касается правого/нижнего края экрана
         const minX = wrapperWidth - scaledWidth;
         const minY = wrapperHeight - scaledHeight;
         
-        // Максимальное смещение (карта упирается в левый/верхний край)
+        // Максимальное смещение — когда левый/верхний край карты касается левого/верхнего края экрана
         const maxX = 0;
         const maxY = 0;
         
-        // Ограничиваем по X
-        if (newOffsetX > maxX) {
-            newOffsetX = maxX;
-        } else if (newOffsetX < minX) {
-            newOffsetX = minX;
+        // Жёстко ограничиваем
+        let newOffsetX = offsetX;
+        let newOffsetY = offsetY;
+        
+        if (newOffsetX > maxX) newOffsetX = maxX;
+        if (newOffsetX < minX) newOffsetX = minX;
+        if (newOffsetY > maxY) newOffsetY = maxY;
+        if (newOffsetY < minY) newOffsetY = minY;
+        
+        // Если карта меньше экрана — центрируем её
+        if (scaledWidth <= wrapperWidth && scaledHeight <= wrapperHeight) {
+            newOffsetX = (wrapperWidth - scaledWidth) / 2;
+            newOffsetY = (wrapperHeight - scaledHeight) / 2;
         }
         
-        // Ограничиваем по Y
-        if (newOffsetY > maxY) {
-            newOffsetY = maxY;
-        } else if (newOffsetY < minY) {
-            newOffsetY = minY;
-        }
-        
-        // Если координаты изменились — применяем
         if (newOffsetX !== offsetX || newOffsetY !== offsetY) {
             offsetX = newOffsetX;
             offsetY = newOffsetY;
             applyTransform();
+            return true;
         }
+        return false;
     }
 
-    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ =====
+    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ (С НЕБОЛЬШИМ ЗАПАСОМ) =====
     function fitMap() {
         const wrapperWidth = wrapper.clientWidth;
         const wrapperHeight = wrapper.clientHeight;
         
+        // Вычисляем масштаб, чтобы карта была чуть больше экрана (на 10%)
         const scaleX = wrapperWidth / MAP_WIDTH;
         const scaleY = wrapperHeight / MAP_HEIGHT;
-        let newScale = Math.min(scaleX, scaleY) * 0.85;
+        let newScale = Math.max(scaleX, scaleY) * 1.1; // Увеличиваем на 10%
         
-        if (newScale > 1) newScale = 1;
+        // Ограничиваем минимальный масштаб
         if (newScale < MIN_SCALE) newScale = MIN_SCALE;
+        if (newScale > MAX_SCALE) newScale = MAX_SCALE;
         
         scale = newScale;
+        
+        // Центрируем карту
         offsetX = (wrapperWidth - MAP_WIDTH * scale) / 2;
         offsetY = (wrapperHeight - MAP_HEIGHT * scale) / 2;
         
         applyTransform();
+        
+        // Принудительно проверяем границы
+        clampBounds();
+        
+        console.log(`📍 Карта центрирована: scale=${scale.toFixed(2)}, offsetX=${offsetX.toFixed(0)}, offsetY=${offsetY.toFixed(0)}`);
     }
 
     // ===== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ ЗУМА =====
@@ -341,9 +340,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ===== ОБНОВЛЕНИЕ ПРИ РЕСАЙЗЕ =====
+    let resizeTimeout;
     window.addEventListener('resize', function() {
-        fitMap();
-        updatePopupPosition();
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            fitMap();
+            updatePopupPosition();
+        }, 50);
     });
 
     // ===== МГНОВЕННЫЙ ЗАПУСК =====
