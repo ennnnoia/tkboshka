@@ -1,0 +1,193 @@
+/* ===== ОБЩИЕ СТИЛИ ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #1a3a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* ===== КОНТЕЙНЕР КАРТЫ ===== */
+#map-wrapper {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    cursor: grab;
+    background: #2d5a2d;
+    position: relative;
+}
+
+#map-wrapper:active {
+    cursor: grabbing;
+}
+
+/* ===== САМА КАРТА ===== */
+#map {
+    width: 2000px;      /* Ширина карты - меняйте под свое изображение */
+    height: 1500px;     /* Высота карты - меняйте под свое изображение */
+    
+    /* Фоновое изображение карты */
+    background-image: url('images/map-background.jpg');
+    background-size: cover;
+    background-position: center;
+    
+    position: relative;
+    transform-origin: 0 0;
+    
+    /* Начальное положение (центрирование) */
+    transform: scale(0.6) translate(700px, 400px);
+}
+
+/* ===== СТИЛИ ДОМИКОВ ===== */
+.house {
+    position: absolute;
+    width: 80px;        /* Ширина домика */
+    height: 80px;       /* Высота домика */
+    cursor: pointer;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    z-index: 1;
+    
+    /* Чтобы изображение не искажалось */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Эффект при наведении */
+.house:hover {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.7));
+    z-index: 10;
+}
+
+/* Эффект при клике (активный) */
+.house.active {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
+    z-index: 20;
+}
+
+/* ===== ПОПАП (ПЛАШКА С ПОЗДРАВЛЕНИЕМ) ===== */
+.popup {
+    display: none;
+    position: absolute;
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    border: 3px solid #ffd700;
+    border-radius: 20px;
+    padding: 25px 30px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+    min-width: 220px;
+    max-width: 300px;
+    text-align: center;
+    pointer-events: none;
+    z-index: 1000;
+    transform: translate(-50%, -130%);
+    animation: popupAppear 0.3s ease-out;
+}
+
+/* Анимация появления попапа */
+@keyframes popupAppear {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -100%) scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -130%) scale(1);
+    }
+}
+
+.popup h3 {
+    color: #8b0000;
+    margin-bottom: 8px;
+    font-size: 22px;
+}
+
+.popup .owner-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 8px 0;
+}
+
+.popup .congrats-text {
+    font-size: 16px;
+    color: #555;
+    margin: 8px 0 15px 0;
+    line-height: 1.4;
+}
+
+.popup .close-btn {
+    pointer-events: auto;
+    padding: 8px 25px;
+    background: linear-gradient(145deg, #c0392b, #e74c3c);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.popup .close-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(192, 57, 43, 0.4);
+}
+
+/* Стрелка попапа (треугольник внизу) */
+.popup::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 15px solid #f0f0f0;
+}
+
+/* ===== ИНФОРМАЦИЯ В УГЛУ ===== */
+#info {
+    position: fixed;
+    bottom: 25px;
+    left: 25px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    z-index: 5;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 16px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+}
+
+/* ===== АДАПТАЦИЯ ПОД МОБИЛЬНЫЕ ===== */
+@media (max-width: 768px) {
+    .house {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .popup {
+        min-width: 160px;
+        padding: 18px 20px;
+        font-size: 14px;
+    }
+    
+    .popup h3 {
+        font-size: 18px;
+    }
+    
+    .popup .owner-name {
+        font-size: 16px;
+    }
+}
