@@ -4,16 +4,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Проверка загрузки библиотеки
     if (typeof Panzoom === 'undefined') {
-        console.error('Библиотека Panzoom не загружена!');
+        console.error('❌ Библиотека Panzoom не загружена! Проверьте подключение.');
         return;
     }
 
-    // ===== ИНИЦИАЛИЗАЦИЯ PANZOOM (НОВАЯ ВЕРСИЯ) =====
+    console.log('✅ Panzoom загружен!');
+
+    // ===== ИНИЦИАЛИЗАЦИЯ PANZOOM =====
     const panzoom = Panzoom(mapElement, {
         maxScale: 2.5,
         minScale: 0.2,
         step: 0.1,
-        duration: 300
+        duration: 300,
+        // Отключаем анимацию для плавности
+        animate: true
     });
 
     // Подключаем колесико для зума
@@ -21,65 +25,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ===== ДАННЫЕ О 27 ДОМИКАХ =====
     const housesData = [
-        { owner: 'Ивановы', congrats: 'С новосельем! 🥂 Пусть дом будет полной чашей!' },
-        { owner: 'Петровы', congrats: 'Счастья, здоровья и уюта! 🏡' },
-        { owner: 'Сидоровы', congrats: 'Пусть всегда горит очаг! 🔥' },
-        { owner: 'Кузнецовы', congrats: 'Крепкой семьи и верных друзей! 💪' },
-        { owner: 'Смирновы', congrats: 'Мира и добра вашему дому! ☮️' },
-        { owner: 'Поповы', congrats: 'С Рождеством! Света и радости! ✨' },
-        { owner: 'Соколовы', congrats: 'Свободы и счастья! 🕊️' },
-        { owner: 'Лебедевы', congrats: 'Красоты и гармонии! 🎵' },
-        { owner: 'Козловы', congrats: 'Смелости и удачи во всём! 🐺' },
-        { owner: 'Новиковы', congrats: 'С Новым годом! Чудес и подарков! 🎄' },
-        { owner: 'Морозовы', congrats: 'Тёплой зимы и уютных вечеров! ☀️' },
-        { owner: 'Волковы', congrats: 'Силы и мудрости! 🐺' },
-        { owner: 'Соловьёвы', congrats: 'Весеннего настроения! 🌸' },
-        { owner: 'Васильевы', congrats: 'Богатого урожая и достатка! 🌾' },
-        { owner: 'Зайцевы', congrats: 'Лёгкости и быстрых успехов! 🚀' },
-        { owner: 'Павловы', congrats: 'С днём свадьбы! Любви до гроба! 💍' },
-        { owner: 'Семёновы', congrats: 'С юбилеем! Долгих лет жизни! 🎉' },
-        { owner: 'Голубевы', congrats: 'Мира и спокойствия над головой! 🕊️' },
-        { owner: 'Виноградовы', congrats: 'Сладкой и богатой жизни! 🍇' },
-        { owner: 'Богдановы', congrats: 'С днём ангела! Божьей помощи! 👼' },
-        { owner: 'Воробьёвы', congrats: 'Весны в душе и радости! 🌸' },
-        { owner: 'Фёдоровы', congrats: 'С Пасхой! Света и любви! ✝️' },
-        { owner: 'Михайловы', congrats: 'С днём города! Гордитесь своим домом! 🏙️' },
-        { owner: 'Беляевы', congrats: 'Светлых идей и вдохновения! 💡' },
-        { owner: 'Тарасовы', congrats: 'С днём рождения! Всех благ! 🎁' },
-        { owner: 'Беловы', congrats: 'Чистого неба и яркого солнца! ☁️' },
-        { owner: 'Орловы', congrats: 'Свободы и новых высот! 🦅' }
+        давай заменим информацию о домиках на это:
+        { owner: 'анна чипска', congrats: 'С новосельем! 🥂 Пусть дом будет полной чашей!' },
+        { owner: 'ПАПА хаус', congrats: 'Счастья, здоровья и уюта! 🏡' },
+        { owner: 'оля кивививи', congrats: 'Пусть всегда горит очаг! 🔥' },
+        { owner: 'ярик якорь', congrats: 'Крепкой семьи и верных друзей! 💪' },
+        { owner: 'аринини', congrats: 'Мира и добра вашему дому! ☮️' },
+        { owner: 'алина фея', congrats: 'С Рождеством! Света и радости! ✨' },
+        { owner: 'настя кодзима', congrats: 'Свободы и счастья! 🕊️' },
+        { owner: 'воввва', congrats: 'Красоты и гармонии! 🎵' },
+        { owner: 'стас маслов сигма', congrats: 'Смелости и удачи во всём! 🐺' },
+        { owner: 'анна волонтёркина', congrats: 'С Новым годом! Чудес и подарков! 🎄' },
+        { owner: 'вика', congrats: 'Тёплой зимы и уютных вечеров! ☀️' },
+        { owner: 'стёпа гхпм', congrats: 'Силы и мудрости! 🐺' },
+        { owner: 'катя няшка', congrats: 'Весеннего настроения! 🌸' },
+        { owner: 'ника', congrats: 'Богатого урожая и достатка! 🌾' },
+        { owner: 'константинополь', congrats: 'Лёгкости и быстрых успехов! 🚀' },
+        { owner: 'данёк', congrats: 'С днём свадьбы! Любви до гроба! 💍' },
+        { owner: 'кубибоб', congrats: 'С юбилеем! Долгих лет жизни! 🎉' },
+        { owner: 'научная башня екатерины', congrats: 'Мира и спокойствия над головой! 🕊️' },
+        { owner: 'арсен', congrats: 'Сладкой и богатой жизни! 🍇' },
+        { owner: 'олечка мяу', congrats: 'С днём ангела! Божьей помощи! 👼' },
+        { owner: 'наталя эльфийская башня', congrats: 'Весны в душе и радости! 🌸' },
+        { owner: 'даша ньюююйооорк', congrats: 'С Пасхой! Света и любви! ✝️' },
+        { owner: 'егор легенда', congrats: 'С днём города! Гордитесь своим домом! 🏙️' },
+        { owner: 'толяяяяян', congrats: 'Светлых идей и вдохновения! 💡' },
+        { owner: 'настя байкал толчки', congrats: 'С днём рождения! Всех благ! 🎁' },
+        { owner: 'дима мясник', congrats: 'Чистого неба и яркого солнца! ☁️' },
+        { owner: 'дарья картошкина', congrats: 'Свободы и новых высот! 🦅' }
     ];
 
-    // ===== 27 УНИКАЛЬНЫХ ИЗОБРАЖЕНИЙ ДОМИКОВ =====
-    const houseImages = [
-        'images/house-1.png',
-        'images/house-2.png',
-        'images/house-3.png',
-        'images/house-4.png',
-        'images/house-5.png',
-        'images/house-6.png',
-        'images/house-7.png',
-        'images/house-8.png',
-        'images/house-9.png',
-        'images/house-10.png',
-        'images/house-11.png',
-        'images/house-12.png',
-        'images/house-13.png',
-        'images/house-14.png',
-        'images/house-15.png',
-        'images/house-16.png',
-        'images/house-17.png',
-        'images/house-18.png',
-        'images/house-19.png',
-        'images/house-20.png',
-        'images/house-21.png',
-        'images/house-22.png',
-        'images/house-23.png',
-        'images/house-24.png',
-        'images/house-25.png',
-        'images/house-26.png',
-        'images/house-27.png'
-    ];
+    // ===== СПИСОК ИЗОБРАЖЕНИЙ (27 штук) =====
+    const houseImages = Array.from({ length: 27 }, (_, i) => `images/house-${i + 1}.png`);
 
     // ===== ГЕНЕРАЦИЯ ДОМИКОВ =====
     const mapWidth = 3000;
@@ -100,7 +77,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         house.dataset.owner = data.owner;
         house.dataset.congrats = data.congrats;
-        house.dataset.index = index;
+        house.dataset.x = x;
+        house.dataset.y = y;
         
         house.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -109,6 +87,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         mapElement.appendChild(house);
     });
+
+    console.log('🏠 Домиков создано:', document.querySelectorAll('.house').length);
 
     // ===== СОЗДАНИЕ ПОПАПА =====
     const popup = document.createElement('div');
@@ -125,20 +105,59 @@ document.addEventListener('DOMContentLoaded', function() {
     const popupCongrats = document.getElementById('popup-congrats');
     const closeBtn = document.getElementById('popup-close');
 
-    // ===== ФУНКЦИЯ ПОКАЗА ПОПАПА (ИСПРАВЛЕНА) =====
-    function showPopup(house) {
-        // Получаем трансформацию через getTransform()
-        const transform = panzoom.getTransform();
-        const scale = transform.scale;  // В новой версии scale внутри объекта
-        const x = transform.x;
-        const y = transform.y;
+    // ===== ПОЛУЧЕНИЕ ТЕКУЩЕГО МАСШТАБА И СМЕЩЕНИЯ (ЧЕРЕЗ CSS) =====
+    function getTransform() {
+        const style = window.getComputedStyle(mapElement);
+        const transform = style.transform;
         
-        const houseX = parseFloat(house.style.left);
-        const houseY = parseFloat(house.style.top);
+        // Если трансформации нет, возвращаем стандартные значения
+        if (transform === 'none') {
+            return { x: 0, y: 0, scale: 1 };
+        }
+        
+        // Парсим matrix или matrix3d
+        const matrix = transform.match(/matrix.*\((.+)\)/);
+        if (!matrix) {
+            return { x: 0, y: 0, scale: 1 };
+        }
+        
+        const values = matrix[1].split(', ').map(Number);
+        
+        // matrix(a, b, c, d, e, f)
+        // a - масштаб по X, d - масштаб по Y, e - смещение X, f - смещение Y
+        if (values.length === 6) {
+            return {
+                scale: values[0],
+                x: values[4],
+                y: values[5]
+            };
+        }
+        
+        // matrix3d(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)
+        if (values.length === 16) {
+            return {
+                scale: values[0],
+                x: values[12],
+                y: values[13]
+            };
+        }
+        
+        return { x: 0, y: 0, scale: 1 };
+    }
+
+    // ===== ФУНКЦИЯ ПОКАЗА ПОПАПА =====
+    function showPopup(house) {
+        const transform = getTransform();
+        const scale = transform.scale;
+        const offsetX = transform.x;
+        const offsetY = transform.y;
+        
+        const houseX = parseFloat(house.dataset.x);
+        const houseY = parseFloat(house.dataset.y);
         
         // Позиция попапа: справа от домика
-        const popupX = (houseX * scale + x + 300 * scale + 15);
-        const popupY = (houseY * scale + y + 300 * scale / 2);
+        const popupX = (houseX * scale + offsetX + 300 * scale + 15);
+        const popupY = (houseY * scale + offsetY + 300 * scale / 2);
         
         popup.style.left = popupX + 'px';
         popup.style.top = popupY + 'px';
@@ -174,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ (ИСПРАВЛЕНО) =====
+    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ (БЕЗ moveTo) =====
     function fitMap() {
         const wrapperWidth = wrapper.clientWidth;
         const wrapperHeight = wrapper.clientHeight;
@@ -191,17 +210,35 @@ document.addEventListener('DOMContentLoaded', function() {
         const tx = (wrapperWidth - mapWidth * initialScale) / 2;
         const ty = (wrapperHeight - mapHeight * initialScale) / 2;
         
-        // В новой версии используем panzoom.moveTo() с объектом
-        panzoom.moveTo(tx, ty);
-        panzoom.zoomTo(initialScale, { animate: false });
+        // Устанавливаем трансформацию напрямую через CSS
+        mapElement.style.transform = `matrix(${initialScale}, 0, 0, ${initialScale}, ${tx}, ${ty})`;
+        
+        // Если у panzoom есть метод setTransform, используем его
+        if (typeof panzoom.setTransform === 'function') {
+            panzoom.setTransform({ x: tx, y: ty, scale: initialScale });
+        }
     }
 
     // Запуск после загрузки всех изображений
     window.addEventListener('load', function() {
-        setTimeout(fitMap, 300);
+        setTimeout(fitMap, 500);
     });
 
     window.addEventListener('resize', fitMap);
+
+    // Обновляем позицию попапа при зуме или перемещении
+    mapElement.addEventListener('panzoomchange', function() {
+        // Если попап открыт, обновляем его позицию
+        if (popup.style.display === 'block') {
+            const activeHouse = document.querySelector('.house.active');
+            if (activeHouse) {
+                showPopup(activeHouse);
+            }
+        }
+    });
+
+    console.log('✅ Карта готова к работе!');
+});
 
     console.log('✅ Карта загружена! Домиков:', document.querySelectorAll('.house').length);
 });
