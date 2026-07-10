@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let startOffsetX = 0;
     let startOffsetY = 0;
 
-    // ===== ФИКСИРОВАННЫЕ КООРДИНАТЫ ДОМИКОВ =====
+    // ===== ФИКСИРОВАННЫЕ КООРДИНАТЫ ДОМИКОВ (27 штук) =====
     const fixedPositions = [
         { x: 100, y: 100 },
         { x: 450, y: 80 },
@@ -133,17 +133,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const wrapperWidth = wrapper.clientWidth;
         const wrapperHeight = wrapper.clientHeight;
         
-        // Размер карты с учётом масштаба
         const scaledWidth = MAP_WIDTH * scale;
         const scaledHeight = MAP_HEIGHT * scale;
         
-        // Минимальное и максимальное смещение
         const minX = wrapperWidth - scaledWidth;
         const minY = wrapperHeight - scaledHeight;
         const maxX = 0;
         const maxY = 0;
         
-        // Ограничиваем
         if (offsetX > maxX) offsetX = maxX;
         if (offsetX < minX) offsetX = minX;
         if (offsetY > maxY) offsetY = maxY;
@@ -152,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
         applyTransform();
     }
 
-    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ =====
+    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ (МГНОВЕННО) =====
     function fitMap() {
         const wrapperWidth = wrapper.clientWidth;
         const wrapperHeight = wrapper.clientHeight;
@@ -169,12 +166,9 @@ document.addEventListener('DOMContentLoaded', function() {
         offsetY = (wrapperHeight - MAP_HEIGHT * scale) / 2;
         
         applyTransform();
-        
-        console.log(`📍 Карта центрирована: scale=${scale.toFixed(2)}, offsetX=${offsetX.toFixed(0)}, offsetY=${offsetY.toFixed(0)}`);
     }
 
     // ===== ОБРАБОТЧИКИ МЫШИ =====
-    // Начало перетаскивания
     wrapper.addEventListener('mousedown', function(e) {
         isDragging = true;
         startX = e.clientX;
@@ -185,7 +179,6 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
     });
 
-    // Перетаскивание
     window.addEventListener('mousemove', function(e) {
         if (!isDragging) return;
         
@@ -196,12 +189,9 @@ document.addEventListener('DOMContentLoaded', function() {
         offsetY = startOffsetY + dy;
         
         clampBounds();
-        
-        // Обновляем позицию попапа
         updatePopupPosition();
     });
 
-    // Конец перетаскивания
     window.addEventListener('mouseup', function() {
         if (isDragging) {
             isDragging = false;
@@ -213,22 +203,18 @@ document.addEventListener('DOMContentLoaded', function() {
     wrapper.addEventListener('wheel', function(e) {
         e.preventDefault();
         
-        // Определяем направление зума
         const delta = e.deltaY > 0 ? -0.08 : 0.08;
         const newScale = Math.min(Math.max(scale + delta, MIN_SCALE), MAX_SCALE);
         
         if (newScale === scale) return;
         
-        // Зум относительно позиции курсора
         const rect = wrapper.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
         
-        // Вычисляем, куда смотрит курсор на карте
         const mapX = (mouseX - offsetX) / scale;
         const mapY = (mouseY - offsetY) / scale;
         
-        // Применяем новый масштаб
         scale = newScale;
         offsetX = mouseX - mapX * scale;
         offsetY = mouseY - mapY * scale;
@@ -326,16 +312,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== ОБНОВЛЕНИЕ ПРИ РЕСАЙЗЕ =====
     window.addEventListener('resize', function() {
         fitMap();
-        setTimeout(updatePopupPosition, 100);
+        updatePopupPosition();
     });
 
-    // ===== ЗАПУСК =====
-    window.addEventListener('load', function() {
-        setTimeout(fitMap, 300);
-    });
-
-    // Дополнительный запуск
-    setTimeout(fitMap, 1000);
+    // ===== МГНОВЕННЫЙ ЗАПУСК (БЕЗ ЗАДЕРЖЕК) =====
+    // Сразу центрируем карту
+    fitMap();
 
     console.log('✅ Карта готова к работе!');
 });
