@@ -9,18 +9,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('✅ Panzoom загружен!');
 
-    // ===== ИНИЦИАЛИЗАЦИЯ PANZOOM =====
+    // ===== ИНИЦИАЛИЗАЦИЯ PANZOOM С ОГРАНИЧЕНИЯМИ =====
     const panzoom = Panzoom(mapElement, {
         maxScale: 2.5,
         minScale: 0.2,
         step: 0.1,
-        duration: 300
+        duration: 300,
+        // ===== ОГРАНИЧЕНИЯ ДВИЖЕНИЯ =====
+        bounds: true,           // Включаем ограничения
+        boundsPadding: 0.1,     // Немного отступа от краёв (10% от размера карты)
+        contain: 'inside'       // Карта не может выходить за пределы контейнера
     });
 
     wrapper.addEventListener('wheel', panzoom.zoomWithWheel);
 
     // ===== ФИКСИРОВАННЫЕ КООРДИНАТЫ ДОМИКОВ (27 штук) =====
-    // Карта 3000x2000, домики 300x300
     const fixedPositions = [
         { x: 100, y: 100 },
         { x: 450, y: 80 },
@@ -90,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const house = document.createElement('div');
         house.className = 'house';
         
-        // Берём координаты из фиксированного массива
         const pos = fixedPositions[index] || { x: 100 + index * 50, y: 100 + index * 30 };
         
         house.style.left = pos.x + 'px';
@@ -112,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('🏠 Домиков создано:', document.querySelectorAll('.house').length);
 
-    // ===== СОЗДАНИЕ ПОПАПА (НОВЫЙ ДИЗАЙН) =====
+    // ===== СОЗДАНИЕ ПОПАПА =====
     const popup = document.createElement('div');
     popup.className = 'popup';
     popup.innerHTML = `
@@ -171,9 +173,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const houseX = parseFloat(house.dataset.x);
         const houseY = parseFloat(house.dataset.y);
         const houseSize = 300;
-        const offset = 20; // Отступ 20px справа от домика
+        const offset = 20;
         
-        // Попап всегда справа от домика, независимо от масштаба
         const popupX = (houseX * scale + offsetX + houseSize * scale + offset);
         const popupY = (houseY * scale + offsetY + houseSize * scale / 2);
         
@@ -228,14 +229,29 @@ document.addEventListener('DOMContentLoaded', function() {
         const tx = (wrapperWidth - mapWidth * initialScale) / 2;
         const ty = (wrapperHeight - mapHeight * initialScale) / 2;
         
+        // Применяем трансформацию через CSS
         mapElement.style.transform = `matrix(${initialScale}, 0, 0, ${initialScale}, ${tx}, ${ty})`;
         
+        // Обновляем состояние panzoom
         if (typeof panzoom.setTransform === 'function') {
             panzoom.setTransform({ x: tx, y: ty, scale: initialScale });
         }
+        
+        // ===== ПРИНУДИТЕЛЬНО ОБНОВЛЯЕМ ГРАНИЦЫ =====
+        setTimeout(() => {
+            if (typeof panzoom.getOptions === 'function') {
+                const options = panzoom.getOptions();
+                // Пересчитываем границы
+                panzoom.setOptions({
+                    bounds: true,
+                    boundsPadding: 0.1,
+                    contain: 'inside'
+                });
+            }
+        }, 100);
     }
 
-    // Обновляем позицию попапа при зуме/перемещении
+    // ===== ОБНОВЛЕНИЕ ПОЗИЦИИ ПОПАПА ПРИ ДВИЖЕНИИ =====
     function updatePopupPosition() {
         if (popup.style.display === 'block') {
             const activeHouse = document.querySelector('.house.active');
@@ -245,15 +261,91 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Событие изменения трансформации
     mapElement.addEventListener('panzoomchange', updatePopupPosition);
+
+    // Обновление при ресайзе
     window.addEventListener('resize', function() {
         fitMap();
-        setTimeout(updatePopupPosition, 100);
+        setTimeout(updatePopupPosition, 150);
     });
 
+    // Запуск после загрузки
     window.addEventListener('load', function() {
         setTimeout(fitMap, 500);
     });
 
-    console.log('✅ Карта готова к работе!');
+    // ===== ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА ОТ ВЫХОДА ЗА ГРАНИЦЫ =====
+    // Отслеживаем изменение transform и корректируем если нужно
+    let isAdjusting = false;
+    
+    function checkBounds() {
+        if (isAdjusting) return;
+        
+        const transform = getTransform();
+        const scale = transform.scale;
+        const x = transform.x;
+        const y = transform.y;
+        
+        const wrapperWidth = wrapper.clientWidth;
+        const wrapperHeight = wrapper.clientHeight;
+        const mapWidth = 3000;
+        const mapHeight = 2000;
+        
+        // Вычисляем видимую область карты
+        const visibleWidth = mapWidth * scale;
+        const visibleHeight = mapHeight * scale;
+        
+        // Максимальные смещения (не даём выйти за края)
+        const maxX = 0;
+        const minX = wrapperWidth - visibleWidth;
+        const maxY = 0;
+        const minY = wrapperHeight - visibleHeight;
+        
+        let newX = x;
+        let newY = y;
+        let needsCorrection = false;
+        
+        // Корректируем X
+        if (x > maxX) {
+            newX = maxX;
+            needsCorrection = true;
+        } else if (x < minX) {
+            newX = minX;
+            needsCorrection = true;
+        }
+        
+        // Корректируем Y
+        if (y > maxY) {
+            newY = maxY;
+            needsCorrection = true;
+        } else if (y < minY) {
+            newY = minY;
+            needsCorrection = true;
+        }
+        
+        // Если нужно скорректировать
+        if (needsCorrection) {
+            isAdjusting = true;
+            mapElement.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${newX}, ${newY})`;
+            if (typeof panzoom.setTransform === 'function') {
+                panzoom.setTransform({ x: newX, y: newY, scale: scale });
+            }
+            setTimeout(() => {
+                isAdjusting = false;
+            }, 50);
+        }
+    }
+
+    // Проверяем границы после каждого движения
+    mapElement.addEventListener('panzoomchange', function() {
+        setTimeout(checkBounds, 10);
+    });
+
+    // Проверяем после зума
+    mapElement.addEventListener('panzoomzoom', function() {
+        setTimeout(checkBounds, 50);
+    });
+
+    console.log('✅ Карта готова к работе! Ограничения движения включены.');
 });
