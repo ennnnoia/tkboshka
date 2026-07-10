@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ===== ДАННЫЕ О 27 ДОМИКАХ =====
     const housesData = [
-        давай заменим информацию о домиках на это:
         { owner: 'анна чипска', congrats: 'С новосельем! 🥂 Пусть дом будет полной чашей!' },
         { owner: 'ПАПА хаус', congrats: 'Счастья, здоровья и уюта! 🏡' },
         { owner: 'оля кивививи', congrats: 'Пусть всегда горит очаг! 🔥' },
