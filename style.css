@@ -45,102 +45,100 @@ html, body {
     background-position: center;
     z-index: 1;
     transition: transform 0.25s ease, filter 0.25s ease;
-    
-    /* Лёгкая тень для объёма */
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
-/* При наведении: слегка увеличиваем + белый контур */
 .house:hover {
     transform: scale(1.08);
-    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
     z-index: 10;
 }
 
-/* Активное состояние (при открытом попапе) */
 .house.active {
     transform: scale(1.1);
-    filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.8)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.7)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
     z-index: 20;
 }
 
-/* ===== ПОПАП ===== */
+/* ===== ПОПАП (НОВЫЙ ДИЗАЙН) ===== */
 .popup {
     display: none;
     position: absolute;
     background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 20px;
-    padding: 20px 28px;
-    min-width: 220px;
-    max-width: 320px;
-    text-align: center;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 20px 24px 24px 24px;
+    min-width: 200px;
+    max-width: 300px;
     pointer-events: none;
     z-index: 1000;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-    transform: translate(20px, -50%);
+    transform: translate(0, -50%);
     animation: popupFade 0.25s ease-out;
 }
 
 @keyframes popupFade {
     0% {
         opacity: 0;
-        transform: translate(10px, -40%);
+        transform: translate(-10px, -50%);
     }
     100% {
         opacity: 1;
-        transform: translate(20px, -50%);
+        transform: translate(0, -50%);
     }
 }
 
-.popup h3 {
-    color: #2c3e50;
-    font-size: 20px;
-    margin-bottom: 4px;
-}
-
-.popup .owner-name {
-    font-size: 22px;
-    font-weight: bold;
-    color: #1a3a1a;
-    margin: 6px 0;
-}
-
-.popup .congrats-text {
-    font-size: 16px;
-    color: #444;
-    margin: 8px 0 4px 0;
-    line-height: 1.4;
-}
-
-.popup .close-btn {
-    pointer-events: auto;
-    padding: 6px 24px;
-    background: #2c3e50;
-    color: white;
+/* Кнопка закрытия (крестик) */
+.popup-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
     border: none;
-    border-radius: 25px;
+    font-size: 20px;
+    color: #888;
     cursor: pointer;
-    font-size: 14px;
-    margin-top: 12px;
-    transition: background 0.2s;
+    pointer-events: auto;
+    transition: color 0.2s, transform 0.2s;
+    line-height: 1;
+    padding: 4px 6px;
+    font-weight: 300;
 }
 
-.popup .close-btn:hover {
-    background: #1a2a3a;
+.popup-close:hover {
+    color: #333;
+    transform: scale(1.2);
 }
 
-/* Маленькая стрелка, указывающая на домик */
+/* Название дома (жирным) */
+.popup-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a3a1a;
+    margin-bottom: 8px;
+    padding-right: 28px;
+    line-height: 1.3;
+}
+
+/* Описание дома */
+.popup-desc {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.4;
+    font-weight: 400;
+}
+
+/* Стрелка, указывающая на домик */
 .popup::before {
     content: '';
     position: absolute;
-    left: -12px;
+    left: -10px;
     top: 50%;
     transform: translateY(-50%);
-    border-top: 12px solid transparent;
-    border-bottom: 12px solid transparent;
-    border-right: 12px solid rgba(255, 255, 255, 0.95);
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid rgba(255, 255, 255, 0.95);
 }
 
 /* ===== ИНФО В УГЛУ ===== */
@@ -167,20 +165,30 @@ html, body {
     }
     
     .popup {
-        min-width: 160px;
-        padding: 14px 18px;
-        transform: translate(10px, -50%);
+        min-width: 140px;
+        max-width: 200px;
+        padding: 14px 16px 16px 16px;
     }
     
-    .popup h3 {
+    .popup-title {
         font-size: 16px;
+        padding-right: 20px;
     }
     
-    .popup .owner-name {
-        font-size: 17px;
-    }
-    
-    .popup .congrats-text {
+    .popup-desc {
         font-size: 13px;
+    }
+    
+    .popup-close {
+        font-size: 16px;
+        top: 4px;
+        right: 8px;
+    }
+    
+    .popup::before {
+        border-top: 7px solid transparent;
+        border-bottom: 7px solid transparent;
+        border-right: 7px solid rgba(255, 255, 255, 0.95);
+        left: -7px;
     }
 }
