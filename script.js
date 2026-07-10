@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ===== ДАННЫЕ О 27 ДОМИКАХ =====
     const housesData = [
-        { owner: 'анна чипска', congrats: 'аве киндер! и пусть солнце будет в вас и вне вас' },
+        { owner: 'Ивановы', congrats: 'С новосельем! 🥂 Пусть дом будет полной чашей!' },
         { owner: 'Петровы', congrats: 'Счастья, здоровья и уюта! 🏡' },
         { owner: 'Сидоровы', congrats: 'Пусть всегда горит очаг! 🔥' },
         { owner: 'Кузнецовы', congrats: 'Крепкой семьи и верных друзей! 💪' },
@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
         { owner: 'Орловы', congrats: 'Свободы и новых высот! 🦅' }
     ];
 
-    // ===== ИЗОБРАЖЕНИЯ ДОМИКОВ (ВСЕ РАЗНЫЕ) =====
-    // У нас 27 домиков и 12 разных вариантов изображений
+    // ===== 27 УНИКАЛЬНЫХ ИЗОБРАЖЕНИЙ ДОМИКОВ =====
+    // Каждый домик получает свою картинку по номеру
     const houseImages = [
         'images/house-1.png',
         'images/house-2.png',
@@ -63,7 +63,22 @@ document.addEventListener('DOMContentLoaded', function() {
         'images/house-9.png',
         'images/house-10.png',
         'images/house-11.png',
-        'images/house-12.png'
+        'images/house-12.png',
+        'images/house-13.png',
+        'images/house-14.png',
+        'images/house-15.png',
+        'images/house-16.png',
+        'images/house-17.png',
+        'images/house-18.png',
+        'images/house-19.png',
+        'images/house-20.png',
+        'images/house-21.png',
+        'images/house-22.png',
+        'images/house-23.png',
+        'images/house-24.png',
+        'images/house-25.png',
+        'images/house-26.png',
+        'images/house-27.png'
     ];
 
     // ===== ГЕНЕРАЦИЯ ДОМИКОВ =====
@@ -71,11 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const mapHeight = 2000;
     const houseSize = 300;
     const margin = 50;
-
-    // Перемешиваем изображения, чтобы домики были разные (но некоторые могут повторяться)
-    function getRandomImage() {
-        return houseImages[Math.floor(Math.random() * houseImages.length)];
-    }
 
     housesData.forEach((data, index) => {
         const house = document.createElement('div');
@@ -88,8 +98,8 @@ document.addEventListener('DOMContentLoaded', function() {
         house.style.left = x + 'px';
         house.style.top = y + 'px';
         
-        // Назначаем случайное изображение
-        house.style.backgroundImage = `url('${getRandomImage()}')`;
+        // ===== КАЖДОМУ ДОМИКУ СВОЯ КАРТИНКА ПО НОМЕРУ =====
+        house.style.backgroundImage = `url('${houseImages[index]}')`;
         
         // Сохраняем данные
         house.dataset.owner = data.owner;
@@ -128,11 +138,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Координаты домика на карте (в пикселях карты)
         const houseX = parseFloat(house.style.left);
         const houseY = parseFloat(house.style.top);
-        const houseHalf = 300 * scale / 2; // Половина размера домика с учётом зума
         
         // Позиция попапа: справа от домика
-        const popupX = (houseX * scale + transform.x + 300 * scale + 15); // 15px отступа
-        const popupY = (houseY * scale + transform.y + 300 * scale / 2); // По центру по вертикали
+        const popupX = (houseX * scale + transform.x + 300 * scale + 15);
+        const popupY = (houseY * scale + transform.y + 300 * scale / 2);
         
         popup.style.left = popupX + 'px';
         popup.style.top = popupY + 'px';
