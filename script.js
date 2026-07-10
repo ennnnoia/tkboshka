@@ -2,29 +2,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const mapElement = document.getElementById('map');
     const wrapper = document.getElementById('map-wrapper');
 
-    if (typeof Panzoom === 'undefined') {
-        console.error('❌ Библиотека Panzoom не загружена!');
-        return;
-    }
+    // ===== ПАРАМЕТРЫ КАРТЫ =====
+    const MAP_WIDTH = 3000;
+    const MAP_HEIGHT = 2000;
+    const HOUSE_SIZE = 300;
+    const MIN_SCALE = 0.15;
+    const MAX_SCALE = 2.5;
 
-    console.log('✅ Panzoom загружен!');
+    // ===== СОСТОЯНИЕ =====
+    let scale = 1;
+    let offsetX = 0;
+    let offsetY = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let startOffsetX = 0;
+    let startOffsetY = 0;
 
-    // ===== ИНИЦИАЛИЗАЦИЯ PANZOOM =====
-    const panzoom = Panzoom(mapElement, {
-        maxScale: 2.5,
-        minScale: 0.15,
-        step: 0.1,
-        duration: 300,
-        // Включаем ограничения
-        bounds: true,
-        boundsPadding: 0.05,
-        contain: 'inside'
-    });
-
-    // Подключаем колесико для зума
-    wrapper.addEventListener('wheel', panzoom.zoomWithWheel);
-
-    // ===== ФИКСИРОВАННЫЕ КООРДИНАТЫ ДОМИКОВ (27 штук) =====
+    // ===== ФИКСИРОВАННЫЕ КООРДИНАТЫ ДОМИКОВ =====
     const fixedPositions = [
         { x: 100, y: 100 },
         { x: 450, y: 80 },
@@ -86,7 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
         { owner: 'Дом Орловых', congrats: 'Дом-замок на холме' }
     ];
 
-    // ===== СПИСОК ИЗОБРАЖЕНИЙ (27 штук) =====
     const houseImages = Array.from({ length: 27 }, (_, i) => `images/house-${i + 1}.png`);
 
     // ===== ГЕНЕРАЦИЯ ДОМИКОВ =====
@@ -129,55 +123,161 @@ document.addEventListener('DOMContentLoaded', function() {
     const popupCongrats = document.getElementById('popup-congrats');
     const closeBtn = document.getElementById('popup-close');
 
-    // ===== ПОЛУЧЕНИЕ ТЕКУЩЕЙ ТРАНСФОРМАЦИИ =====
-    function getTransform() {
-        const style = window.getComputedStyle(mapElement);
-        const transform = style.transform;
-        
-        if (transform === 'none') {
-            return { x: 0, y: 0, scale: 1 };
-        }
-        
-        const matrix = transform.match(/matrix.*\((.+)\)/);
-        if (!matrix) {
-            return { x: 0, y: 0, scale: 1 };
-        }
-        
-        const values = matrix[1].split(', ').map(Number);
-        
-        if (values.length === 6) {
-            return {
-                scale: values[0],
-                x: values[4],
-                y: values[5]
-            };
-        }
-        
-        if (values.length === 16) {
-            return {
-                scale: values[0],
-                x: values[12],
-                y: values[13]
-            };
-        }
-        
-        return { x: 0, y: 0, scale: 1 };
+    // ===== ФУНКЦИЯ ПРИМЕНЕНИЯ ТРАНСФОРМАЦИИ =====
+    function applyTransform() {
+        mapElement.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${offsetX}, ${offsetY})`;
     }
+
+    // ===== ПРОВЕРКА И ОГРАНИЧЕНИЕ ГРАНИЦ =====
+    function clampBounds() {
+        const wrapperWidth = wrapper.clientWidth;
+        const wrapperHeight = wrapper.clientHeight;
+        
+        // Размер карты с учётом масштаба
+        const scaledWidth = MAP_WIDTH * scale;
+        const scaledHeight = MAP_HEIGHT * scale;
+        
+        // Минимальное и максимальное смещение
+        const minX = wrapperWidth - scaledWidth;
+        const minY = wrapperHeight - scaledHeight;
+        const maxX = 0;
+        const maxY = 0;
+        
+        // Ограничиваем
+        if (offsetX > maxX) offsetX = maxX;
+        if (offsetX < minX) offsetX = minX;
+        if (offsetY > maxY) offsetY = maxY;
+        if (offsetY < minY) offsetY = minY;
+        
+        applyTransform();
+    }
+
+    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ =====
+    function fitMap() {
+        const wrapperWidth = wrapper.clientWidth;
+        const wrapperHeight = wrapper.clientHeight;
+        
+        const scaleX = wrapperWidth / MAP_WIDTH;
+        const scaleY = wrapperHeight / MAP_HEIGHT;
+        let newScale = Math.min(scaleX, scaleY) * 0.85;
+        
+        if (newScale > 1) newScale = 1;
+        if (newScale < MIN_SCALE) newScale = MIN_SCALE;
+        
+        scale = newScale;
+        offsetX = (wrapperWidth - MAP_WIDTH * scale) / 2;
+        offsetY = (wrapperHeight - MAP_HEIGHT * scale) / 2;
+        
+        applyTransform();
+        
+        console.log(`📍 Карта центрирована: scale=${scale.toFixed(2)}, offsetX=${offsetX.toFixed(0)}, offsetY=${offsetY.toFixed(0)}`);
+    }
+
+    // ===== ОБРАБОТЧИКИ МЫШИ =====
+    // Начало перетаскивания
+    wrapper.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startOffsetX = offsetX;
+        startOffsetY = offsetY;
+        wrapper.style.cursor = 'grabbing';
+        e.preventDefault();
+    });
+
+    // Перетаскивание
+    window.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        
+        offsetX = startOffsetX + dx;
+        offsetY = startOffsetY + dy;
+        
+        clampBounds();
+        
+        // Обновляем позицию попапа
+        updatePopupPosition();
+    });
+
+    // Конец перетаскивания
+    window.addEventListener('mouseup', function() {
+        if (isDragging) {
+            isDragging = false;
+            wrapper.style.cursor = 'grab';
+        }
+    });
+
+    // ===== ЗУМ КОЛЕСИКОМ =====
+    wrapper.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        
+        // Определяем направление зума
+        const delta = e.deltaY > 0 ? -0.08 : 0.08;
+        const newScale = Math.min(Math.max(scale + delta, MIN_SCALE), MAX_SCALE);
+        
+        if (newScale === scale) return;
+        
+        // Зум относительно позиции курсора
+        const rect = wrapper.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Вычисляем, куда смотрит курсор на карте
+        const mapX = (mouseX - offsetX) / scale;
+        const mapY = (mouseY - offsetY) / scale;
+        
+        // Применяем новый масштаб
+        scale = newScale;
+        offsetX = mouseX - mapX * scale;
+        offsetY = mouseY - mapY * scale;
+        
+        clampBounds();
+        updatePopupPosition();
+    }, { passive: false });
+
+    // ===== ЗУМ КНОПКАМИ + и - =====
+    document.addEventListener('keydown', function(e) {
+        if (e.key === '+' || e.key === '=') {
+            e.preventDefault();
+            const newScale = Math.min(scale + 0.1, MAX_SCALE);
+            if (newScale !== scale) {
+                const centerX = wrapper.clientWidth / 2;
+                const centerY = wrapper.clientHeight / 2;
+                const mapX = (centerX - offsetX) / scale;
+                const mapY = (centerY - offsetY) / scale;
+                scale = newScale;
+                offsetX = centerX - mapX * scale;
+                offsetY = centerY - mapY * scale;
+                clampBounds();
+                updatePopupPosition();
+            }
+        } else if (e.key === '-' || e.key === '_') {
+            e.preventDefault();
+            const newScale = Math.max(scale - 0.1, MIN_SCALE);
+            if (newScale !== scale) {
+                const centerX = wrapper.clientWidth / 2;
+                const centerY = wrapper.clientHeight / 2;
+                const mapX = (centerX - offsetX) / scale;
+                const mapY = (centerY - offsetY) / scale;
+                scale = newScale;
+                offsetX = centerX - mapX * scale;
+                offsetY = centerY - mapY * scale;
+                clampBounds();
+                updatePopupPosition();
+            }
+        }
+    });
 
     // ===== ФУНКЦИЯ ПОКАЗА ПОПАПА =====
     function showPopup(house) {
-        const transform = getTransform();
-        const scale = transform.scale;
-        const offsetX = transform.x;
-        const offsetY = transform.y;
-        
         const houseX = parseFloat(house.dataset.x);
         const houseY = parseFloat(house.dataset.y);
-        const houseSize = 300;
         const offset = 20;
         
-        const popupX = (houseX * scale + offsetX + houseSize * scale + offset);
-        const popupY = (houseY * scale + offsetY + houseSize * scale / 2);
+        const popupX = (houseX * scale + offsetX + HOUSE_SIZE * scale + offset);
+        const popupY = (houseY * scale + offsetY + HOUSE_SIZE * scale / 2);
         
         popup.style.left = popupX + 'px';
         popup.style.top = popupY + 'px';
@@ -188,6 +288,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.querySelectorAll('.house').forEach(h => h.classList.remove('active'));
         house.classList.add('active');
+    }
+
+    // ===== ОБНОВЛЕНИЕ ПОПАПА =====
+    function updatePopupPosition() {
+        if (popup.style.display === 'block') {
+            const activeHouse = document.querySelector('.house.active');
+            if (activeHouse) {
+                showPopup(activeHouse);
+            }
+        }
     }
 
     // ===== ЗАКРЫТИЕ ПОПАПА =====
@@ -213,81 +323,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ===== ЦЕНТРИРОВАНИЕ КАРТЫ (ИСПРАВЛЕНО) =====
-    function fitMap() {
-        const wrapperWidth = wrapper.clientWidth;
-        const wrapperHeight = wrapper.clientHeight;
-        const mapWidth = 3000;
-        const mapHeight = 2000;
-        
-        // Вычисляем масштаб, чтобы карта помещалась
-        const scaleX = wrapperWidth / mapWidth;
-        const scaleY = wrapperHeight / mapHeight;
-        let initialScale = Math.min(scaleX, scaleY) * 0.85;
-        
-        if (initialScale > 1) initialScale = 1;
-        if (initialScale < 0.15) initialScale = 0.15;
-        
-        // Вычисляем смещение для центрирования
-        const tx = (wrapperWidth - mapWidth * initialScale) / 2;
-        const ty = (wrapperHeight - mapHeight * initialScale) / 2;
-        
-        // ===== ВАЖНО: Используем setTransform для корректного центрирования =====
-        if (typeof panzoom.setTransform === 'function') {
-            panzoom.setTransform({
-                x: tx,
-                y: ty,
-                scale: initialScale
-            });
-        } else {
-            // Fallback через CSS
-            mapElement.style.transform = `matrix(${initialScale}, 0, 0, ${initialScale}, ${tx}, ${ty})`;
-        }
-        
-        // Обновляем границы
-        setTimeout(() => {
-            if (typeof panzoom.setOptions === 'function') {
-                panzoom.setOptions({
-                    bounds: true,
-                    boundsPadding: 0.05,
-                    contain: 'inside'
-                });
-            }
-        }, 100);
-        
-        console.log(`📍 Карта центрирована: scale=${initialScale.toFixed(2)}, tx=${tx.toFixed(0)}, ty=${ty.toFixed(0)}`);
-    }
-
-    // ===== ОБНОВЛЕНИЕ ПОПАПА ПРИ ДВИЖЕНИИ =====
-    function updatePopupPosition() {
-        if (popup.style.display === 'block') {
-            const activeHouse = document.querySelector('.house.active');
-            if (activeHouse) {
-                showPopup(activeHouse);
-            }
-        }
-    }
-
-    // События panzoom
-    mapElement.addEventListener('panzoomchange', updatePopupPosition);
-    mapElement.addEventListener('panzoomzoom', function() {
-        setTimeout(updatePopupPosition, 50);
-    });
-
-    // Обновление при ресайзе
+    // ===== ОБНОВЛЕНИЕ ПРИ РЕСАЙЗЕ =====
     window.addEventListener('resize', function() {
         fitMap();
-        setTimeout(updatePopupPosition, 150);
+        setTimeout(updatePopupPosition, 100);
     });
 
     // ===== ЗАПУСК =====
     window.addEventListener('load', function() {
-        // Даём время на загрузку изображений
-        setTimeout(fitMap, 500);
+        setTimeout(fitMap, 300);
     });
 
-    // Дополнительный запуск через 1 секунду (на случай, если изображения долго грузятся)
-    setTimeout(fitMap, 1500);
+    // Дополнительный запуск
+    setTimeout(fitMap, 1000);
 
     console.log('✅ Карта готова к работе!');
 });
